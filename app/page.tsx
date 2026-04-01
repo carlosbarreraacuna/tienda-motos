@@ -1,4 +1,5 @@
 import { HeroSection } from "@/components/HeroSection";
+import { BrandsCarousel } from "@/components/BrandsCarousel";
 import { CategoriesSection } from "@/components/CategoriesSection";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { api } from "@/lib/api";
@@ -33,6 +34,7 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection />
+      <BrandsCarousel />
       <CategoriesSection categorias={categorias} />
       <FeaturedProducts productos={productos} />
     </>

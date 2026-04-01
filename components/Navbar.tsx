@@ -42,12 +42,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-primary text-white font-bold text-xl px-3 py-1 rounded">
-              MR
-            </div>
-            <span className="font-bold text-xl text-dark hidden sm:block">
-              MotoRepuestos
-            </span>
+            <img src="/logo.jpeg" alt="Logo" className="h-16 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

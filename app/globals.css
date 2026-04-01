@@ -14,3 +14,16 @@
     text-wrap: balance;
   }
 }
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.hover\:pause-animation:hover {
+  animation-play-state: paused;
+}

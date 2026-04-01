@@ -3,18 +3,18 @@ import { ArrowRight } from 'lucide-react';
 
 export function HeroSection() {
   return (
-    <section className="relative bg-dark text-white overflow-hidden">
+    <section className="relative bg-dark text-white overflow-hidden min-h-screen flex items-center">
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-dark via-dark/95 to-dark/80 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-dark/70 via-dark/60 to-dark/50 z-10" />
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
+        className="absolute inset-0 bg-cover bg-center opacity-80"
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1920')",
+          backgroundImage: "url('/background.png')",
         }}
       />
 
       {/* Content */}
-      <div className="relative z-20 container mx-auto px-4 py-24 md:py-32">
+      <div className="relative z-20 container mx-auto px-4 py-12">
         <div className="max-w-3xl">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Repuestos de Calidad
