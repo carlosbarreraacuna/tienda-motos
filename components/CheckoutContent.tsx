@@ -62,24 +62,61 @@ export function CheckoutContent() {
   };
 
   const initWompiWidget = () => {
-    // Cargar script de Wompi
-    const script = document.createElement('script');
-    script.src = 'https://checkout.wompi.co/widget.js';
-    script.async = true;
-    script.setAttribute('data-render', 'button');
-    script.setAttribute('data-public-key', process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY || '');
-    script.setAttribute('data-currency', 'COP');
-    script.setAttribute('data-amount-in-cents', (total * 100).toString());
-    script.setAttribute('data-reference', `ORDER-${Date.now()}`);
+    const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
     
-    const container = document.getElementById('wompi-widget');
-    if (container) {
-      container.innerHTML = '';
-      container.appendChild(script);
+    if (!publicKey) {
+      console.error('NEXT_PUBLIC_WOMPI_PUBLIC_KEY no está configurada');
+      alert('Error: La clave pública de Wompi no está configurada. Por favor contacta al administrador.');
+      return;
+    }
+
+    // Verificar si el script ya está cargado
+    if (!document.getElementById('wompi-widget-script')) {
+      const script = document.createElement('script');
+      script.id = 'wompi-widget-script';
+      script.src = 'https://checkout.wompi.co/widget.js';
+      script.async = true;
+      script.onload = () => {
+        renderWompiCheckout();
+      };
+      document.body.appendChild(script);
+    } else {
+      renderWompiCheckout();
     }
 
     // Listener para eventos de Wompi
     window.addEventListener('message', handleWompiEvent);
+  };
+
+  const renderWompiCheckout = () => {
+    const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
+    const reference = `ORDER-${Date.now()}`;
+    
+    // Verificar que WidgetCheckout esté disponible
+    if (typeof (window as any).WidgetCheckout === 'undefined') {
+      console.error('WidgetCheckout no está disponible');
+      setTimeout(renderWompiCheckout, 500);
+      return;
+    }
+
+    const checkout = new (window as any).WidgetCheckout({
+      currency: 'COP',
+      amountInCents: Math.round(total * 100),
+      reference: reference,
+      publicKey: publicKey,
+      redirectUrl: window.location.origin + '/checkout',
+      customerData: {
+        email: formData.cliente_email,
+        fullName: formData.cliente_nombre,
+        phoneNumber: formData.cliente_telefono,
+      },
+    });
+
+    const container = document.getElementById('wompi-widget');
+    if (container) {
+      container.innerHTML = '';
+      checkout.render(container);
+    }
   };
 
   const handleWompiEvent = async (event: MessageEvent) => {
