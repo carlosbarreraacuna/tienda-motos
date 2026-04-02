@@ -2,6 +2,8 @@ import { Suspense } from 'react';
 import { CatalogContent } from '@/components/CatalogContent';
 import { api } from '@/lib/api';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Catálogo de Repuestos - MotoRepuestos Colombia',
   description: 'Encuentra todos los repuestos para tu moto. Filtros por categoría, marca y precio.',

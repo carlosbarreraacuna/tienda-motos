@@ -4,6 +4,8 @@ import { CategoriesSection } from "@/components/CategoriesSection";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { api } from "@/lib/api";
 
+export const dynamic = 'force-dynamic';
+
 export const revalidate = 300; // Revalidar cada 5 minutos
 
 export default async function HomePage() {

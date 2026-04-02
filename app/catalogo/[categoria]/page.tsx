@@ -3,6 +3,7 @@ import { CatalogContent } from '@/components/CatalogContent';
 import { api } from '@/lib/api';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export default async function CategoriaPage({
