@@ -36,6 +36,15 @@ export function CheckoutContent() {
     }
   }, [items, step, router]);
 
+  useEffect(() => {
+    if (step === 'payment') {
+      // Pequeño delay para asegurar que el DOM esté listo
+      setTimeout(() => {
+        initWompiWidget();
+      }, 100);
+    }
+  }, [step]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -57,12 +66,14 @@ export function CheckoutContent() {
     e.preventDefault();
     if (validateForm()) {
       setStep('payment');
-      initWompiWidget();
     }
   };
 
   const initWompiWidget = () => {
     const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
+    
+    console.log('🔑 Wompi Public Key:', publicKey ? 'Configurada ✅' : 'NO configurada ❌');
+    console.log('🔑 Valor:', publicKey);
     
     if (!publicKey) {
       console.error('NEXT_PUBLIC_WOMPI_PUBLIC_KEY no está configurada');
@@ -99,23 +110,64 @@ export function CheckoutContent() {
       return;
     }
 
+    console.log('✅ Inicializando Wompi Widget...');
+
     const checkout = new (window as any).WidgetCheckout({
       currency: 'COP',
       amountInCents: Math.round(total * 100),
       reference: reference,
       publicKey: publicKey,
-      redirectUrl: window.location.origin + '/checkout',
+      redirectUrl: window.location.origin + '/orden-confirmada',
       customerData: {
         email: formData.cliente_email,
         fullName: formData.cliente_nombre,
         phoneNumber: formData.cliente_telefono,
+        phoneNumberPrefix: '+57',
       },
     });
 
     const container = document.getElementById('wompi-widget');
+    console.log('📦 Container encontrado:', container);
+    
     if (container) {
-      container.innerHTML = '';
-      checkout.render(container);
+      const buttonHTML = `
+        <button 
+          id="wompi-pay-button"
+          style="width: 100%; background-color: #D62B2B; color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 1.125rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; cursor: pointer; transition: all 0.3s;"
+          onmouseover="this.style.backgroundColor='#b82424'"
+          onmouseout="this.style.backgroundColor='#D62B2B'"
+        >
+          <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          Pagar con Wompi - ${formatCOP(total)}
+        </button>
+      `;
+      
+      container.innerHTML = buttonHTML;
+      console.log('✅ Botón HTML insertado');
+
+      setTimeout(() => {
+        const button = document.getElementById('wompi-pay-button');
+        console.log('🔘 Botón encontrado:', button);
+        
+        if (button) {
+          button.addEventListener('click', () => {
+            console.log('🖱️ Click en botón de pago');
+            checkout.open((result: any) => {
+              console.log('💳 Resultado del pago:', result);
+              if (result.transaction && result.transaction.status === 'APPROVED') {
+                crearOrden(result.transaction.id);
+              }
+            });
+          });
+          console.log('✅ Event listener agregado al botón');
+        } else {
+          console.error('❌ No se encontró el botón después de insertar HTML');
+        }
+      }, 100);
+    } else {
+      console.error('❌ No se encontró el contenedor #wompi-widget');
     }
   };
 
