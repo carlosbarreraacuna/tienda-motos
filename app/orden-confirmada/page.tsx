@@ -42,15 +42,25 @@ function OrdenConfirmadaContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const orderId = searchParams.get('id');
-    const transactionId = searchParams.get('transaction') || searchParams.get('id');
+    // Wompi redirige agregando parámetros a nuestra redirectUrl
+    // Configuramos: /orden-confirmada?order=WEB-XXXXXXXX
+    // Wompi agrega: &id=TRANSACTION_ID&env=production
+    const orderId = searchParams.get('order') || searchParams.get('id');
+    const transactionId = searchParams.get('id'); // Wompi siempre agrega el transaction_id como 'id'
     
-    if (!orderId || !transactionId) {
+    if (!orderId) {
       setError('No se proporcionó un ID de orden válido');
       setLoading(false);
       return;
     }
 
+    if (!transactionId) {
+      setError('No se proporcionó un ID de transacción válido');
+      setLoading(false);
+      return;
+    }
+
+    console.log('🔍 Verificando orden:', { orderId, transactionId });
     verifyOrder(orderId, transactionId);
   }, [searchParams]);
 

@@ -218,7 +218,7 @@ export function CheckoutContent() {
       amountInCents: amountInCents,
       reference: reference,
       publicKey: publicKey,
-      redirectUrl: `${window.location.origin}/orden-confirmada?id=${ordenId}`,
+      redirectUrl: `${window.location.origin}/orden-confirmada?order=${ordenId}`,
       customerData: {
         email: formData.cliente_email,
         fullName: formData.cliente_nombre,
@@ -283,9 +283,23 @@ export function CheckoutContent() {
   };
 
   const actualizarOrdenConPago = async (referenciaWompi: string) => {
-    // La orden ya fue creada, solo actualizamos la referencia de pago
-    // Wompi redirigirá automáticamente a /orden-confirmada?id=ORDEN_ID
     console.log('💳 Pago exitoso, referencia:', referenciaWompi);
+    
+    try {
+      // Actualizar la orden con la referencia de pago
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/tienda/ordenes/${ordenId}/payment`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          payment_reference: referenciaWompi,
+          status: 'paid',
+        }),
+      });
+    } catch (error) {
+      console.error('Error actualizando orden:', error);
+    }
     
     // Limpiar carrito
     clearCart();
