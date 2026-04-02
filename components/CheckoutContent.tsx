@@ -121,7 +121,6 @@ export function CheckoutContent() {
           envio,
           total,
           metodo_pago: 'wompi',
-          referencia_pago: null, // Se actualizará después del pago
           cupon_codigo: appliedCoupon?.code,
           cupon_descuento: couponDiscount,
         };
