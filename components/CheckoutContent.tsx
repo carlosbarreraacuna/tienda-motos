@@ -25,10 +25,18 @@ export function CheckoutContent() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Estados para código promocional
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
 
   const subtotal = getTotal();
   const envio = subtotal >= 150000 ? 0 : 15000;
-  const total = subtotal + envio;
+  const totalBeforeDiscount = subtotal + envio;
+  const total = Math.max(0, totalBeforeDiscount - couponDiscount);
 
   useEffect(() => {
     if (items.length === 0 && step === 'info') {
@@ -60,6 +68,40 @@ export function CheckoutContent() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!promoCode.trim()) {
+      setCouponError('Por favor ingresa un código promocional');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError('');
+
+    try {
+      const productIds = items.map(item => item.producto.id);
+      const response = await api.validarCupon(promoCode.trim(), totalBeforeDiscount, productIds);
+
+      if (response.success && response.data) {
+        setAppliedCoupon(response.data.coupon);
+        setCouponDiscount(response.data.discount);
+        setCouponError('');
+      }
+    } catch (error: any) {
+      setCouponError(error.message || 'Cupón inválido o expirado');
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setPromoCode('');
+    setCouponError('');
   };
 
   const handleSubmitInfo = (e: React.FormEvent) => {
@@ -192,6 +234,8 @@ export function CheckoutContent() {
         total,
         metodo_pago: 'wompi',
         referencia_pago: referenciaWompi,
+        cupon_codigo: appliedCoupon?.code,
+        cupon_descuento: couponDiscount,
       };
 
       const response = await api.crearOrden(ordenData);
@@ -448,6 +492,53 @@ export function CheckoutContent() {
                 ))}
               </div>
 
+              {/* Código Promocional */}
+              <div className="border-t pt-4 mb-4">
+                <h3 className="text-sm font-semibold mb-2">Código Promocional</h3>
+                {!appliedCoupon ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Ingresa tu código"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        disabled={couponLoading}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !promoCode.trim()}
+                        className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {couponLoading ? 'Validando...' : 'Aplicar'}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-xs text-red-600">{couponError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex justify-between items-start mb-1">
+                      <div>
+                        <p className="text-sm font-semibold text-green-800">{appliedCoupon.name}</p>
+                        <p className="text-xs text-green-600">Código: {appliedCoupon.code}</p>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="text-green-600 hover:text-green-800 text-xs underline"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                    <p className="text-xs text-green-700">
+                      Descuento: -{formatCOP(couponDiscount)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
@@ -463,6 +554,12 @@ export function CheckoutContent() {
                   <p className="text-xs text-green-600">
                     ¡Envío gratis por compra superior a $150.000!
                   </p>
+                )}
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Descuento cupón:</span>
+                    <span className="font-semibold">-{formatCOP(couponDiscount)}</span>
+                  </div>
                 )}
                 <div className="flex justify-between text-lg font-bold border-t pt-2">
                   <span>Total:</span>

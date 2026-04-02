@@ -73,6 +73,28 @@ export interface CrearOrdenData {
   metodo_pago: string;
   referencia_pago?: string;
   notas?: string;
+  cupon_codigo?: string;
+  cupon_descuento?: number;
+}
+
+export interface Cupon {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  type: 'percentage' | 'fixed' | 'free_product';
+  value: number;
+}
+
+export interface ValidarCuponResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    coupon: Cupon;
+    discount: number;
+    new_total: number;
+  };
+  errors?: string[];
 }
 
 class ApiClient {
@@ -145,6 +167,18 @@ class ApiClient {
     return this.request<{ success: boolean; data: Categoria[] }>(
       '/tienda/categorias'
     );
+  }
+
+  // Validar cupón
+  async validarCupon(codigo: string, orderTotal: number, productIds: number[] = []): Promise<ValidarCuponResponse> {
+    return this.request('/tienda/cupones/validar', {
+      method: 'POST',
+      body: JSON.stringify({
+        code: codigo,
+        order_total: orderTotal,
+        product_ids: productIds
+      }),
+    });
   }
 
   // Crear orden
