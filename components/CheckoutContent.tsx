@@ -274,7 +274,6 @@ export function CheckoutContent() {
       
       if (response.success) {
         setOrdenId(response.data.numero_orden);
-        setStep('success');
         clearCart();
         
         // Google Analytics event
@@ -291,6 +290,9 @@ export function CheckoutContent() {
             })),
           });
         }
+
+        // Redirigir a página de confirmación con parámetros seguros
+        router.push(`/orden-confirmada?id=${response.data.numero_orden}&transaction=${referenciaWompi}`);
       }
     } catch (error) {
       alert('Error al crear la orden. Por favor intenta nuevamente.');
