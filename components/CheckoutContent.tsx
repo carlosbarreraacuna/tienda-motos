@@ -51,7 +51,7 @@ export function CheckoutContent() {
         initWompiWidget();
       }, 100);
     }
-  }, [step]);
+  }, [step, total]); // Re-render cuando cambie el total (por cupón)
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -153,6 +153,7 @@ export function CheckoutContent() {
     }
 
     console.log('✅ Inicializando Wompi Widget...');
+    console.log('💰 Total a cobrar:', total, '→ En centavos:', Math.round(total * 100));
 
     const checkout = new (window as any).WidgetCheckout({
       currency: 'COP',
@@ -172,6 +173,9 @@ export function CheckoutContent() {
     console.log('📦 Container encontrado:', container);
     
     if (container) {
+      // Limpiar contenedor antes de renderizar
+      container.innerHTML = '';
+      
       const buttonHTML = `
         <button 
           id="wompi-pay-button"
