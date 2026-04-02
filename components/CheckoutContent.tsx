@@ -141,9 +141,10 @@ export function CheckoutContent() {
     window.addEventListener('message', handleWompiEvent);
   };
 
-  const renderWompiCheckout = () => {
+  const renderWompiCheckout = async () => {
     const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
     const reference = `ORDER-${Date.now()}`;
+    const amountInCents = Math.round(total * 100);
     
     // Verificar que WidgetCheckout esté disponible
     if (typeof (window as any).WidgetCheckout === 'undefined') {
@@ -153,11 +154,37 @@ export function CheckoutContent() {
     }
 
     console.log('✅ Inicializando Wompi Widget...');
-    console.log('💰 Total a cobrar:', total, '→ En centavos:', Math.round(total * 100));
+    console.log('💰 Total a cobrar:', total, '→ En centavos:', amountInCents);
+
+    // Obtener firma de integridad del backend
+    let integrity = undefined;
+    try {
+      const integrityResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/tienda/wompi/integrity`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reference: reference,
+          amount_in_cents: amountInCents,
+          currency: 'COP',
+        }),
+      });
+
+      if (integrityResponse.ok) {
+        const integrityData = await integrityResponse.json();
+        if (integrityData.success && integrityData.data) {
+          integrity = integrityData.data.integrity;
+          console.log('🔐 Firma de integridad obtenida');
+        }
+      }
+    } catch (error) {
+      console.error('Error obteniendo firma de integridad:', error);
+    }
 
     const checkout = new (window as any).WidgetCheckout({
       currency: 'COP',
-      amountInCents: Math.round(total * 100),
+      amountInCents: amountInCents,
       reference: reference,
       publicKey: publicKey,
       redirectUrl: window.location.origin + '/orden-confirmada',
@@ -167,6 +194,7 @@ export function CheckoutContent() {
         phoneNumber: formData.cliente_telefono,
         phoneNumberPrefix: '+57',
       },
+      ...(integrity && { signature: { integrity } }),
     });
 
     const container = document.getElementById('wompi-widget');
