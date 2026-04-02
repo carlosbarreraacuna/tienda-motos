@@ -104,10 +104,41 @@ export function CheckoutContent() {
     setCouponError('');
   };
 
-  const handleSubmitInfo = (e: React.FormEvent) => {
+  const handleSubmitInfo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      setStep('payment');
+      // Crear la orden antes de ir al paso de pago
+      setLoading(true);
+      try {
+        const ordenData = {
+          ...formData,
+          items: items.map(item => ({
+            producto_id: item.producto.id,
+            cantidad: item.cantidad,
+            precio: item.producto.precio_venta,
+          })),
+          subtotal,
+          envio,
+          total,
+          metodo_pago: 'wompi',
+          referencia_pago: null, // Se actualizará después del pago
+          cupon_codigo: appliedCoupon?.code,
+          cupon_descuento: couponDiscount,
+        };
+
+        const response = await api.crearOrden(ordenData);
+        
+        if (response.success) {
+          setOrdenId(response.data.numero_orden);
+          setStep('payment');
+        } else {
+          alert('Error al crear la orden. Por favor intenta nuevamente.');
+        }
+      } catch (error) {
+        alert('Error al crear la orden. Por favor intenta nuevamente.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -143,7 +174,7 @@ export function CheckoutContent() {
 
   const renderWompiCheckout = async () => {
     const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
-    const reference = `ORDER-${Date.now()}`;
+    const reference = ordenId || `ORDER-${Date.now()}`;
     const amountInCents = Math.round(total * 100);
     
     // Verificar que WidgetCheckout esté disponible
@@ -155,6 +186,7 @@ export function CheckoutContent() {
 
     console.log('✅ Inicializando Wompi Widget...');
     console.log('💰 Total a cobrar:', total, '→ En centavos:', amountInCents);
+    console.log('📋 Orden ID:', ordenId);
 
     // Obtener firma de integridad del backend
     let integrity = undefined;
@@ -187,7 +219,7 @@ export function CheckoutContent() {
       amountInCents: amountInCents,
       reference: reference,
       publicKey: publicKey,
-      redirectUrl: window.location.origin + '/orden-confirmada',
+      redirectUrl: `${window.location.origin}/orden-confirmada?id=${ordenId}`,
       customerData: {
         email: formData.cliente_email,
         fullName: formData.cliente_nombre,
@@ -231,7 +263,7 @@ export function CheckoutContent() {
             checkout.open((result: any) => {
               console.log('💳 Resultado del pago:', result);
               if (result.transaction && result.transaction.status === 'APPROVED') {
-                crearOrden(result.transaction.id);
+                actualizarOrdenConPago(result.transaction.id);
               }
             });
           });
@@ -247,57 +279,31 @@ export function CheckoutContent() {
 
   const handleWompiEvent = async (event: MessageEvent) => {
     if (event.data.type === 'PAYMENT_SUCCESS') {
-      await crearOrden(event.data.transaction.id);
+      await actualizarOrdenConPago(event.data.transaction.id);
     }
   };
 
-  const crearOrden = async (referenciaWompi: string) => {
-    setLoading(true);
-    try {
-      const ordenData = {
-        ...formData,
+  const actualizarOrdenConPago = async (referenciaWompi: string) => {
+    // La orden ya fue creada, solo actualizamos la referencia de pago
+    // Wompi redirigirá automáticamente a /orden-confirmada?id=ORDEN_ID
+    console.log('💳 Pago exitoso, referencia:', referenciaWompi);
+    
+    // Limpiar carrito
+    clearCart();
+    
+    // Google Analytics event
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'purchase', {
+        transaction_id: ordenId,
+        value: total,
+        currency: 'COP',
         items: items.map(item => ({
-          producto_id: item.producto.id,
-          cantidad: item.cantidad,
-          precio: item.producto.precio_venta,
+          item_id: item.producto.codigo,
+          item_name: item.producto.nombre,
+          price: item.producto.precio_venta,
+          quantity: item.cantidad,
         })),
-        subtotal,
-        envio,
-        total,
-        metodo_pago: 'wompi',
-        referencia_pago: referenciaWompi,
-        cupon_codigo: appliedCoupon?.code,
-        cupon_descuento: couponDiscount,
-      };
-
-      const response = await api.crearOrden(ordenData);
-      
-      if (response.success) {
-        setOrdenId(response.data.numero_orden);
-        clearCart();
-        
-        // Google Analytics event
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-          (window as any).gtag('event', 'purchase', {
-            transaction_id: response.data.numero_orden,
-            value: total,
-            currency: 'COP',
-            items: items.map(item => ({
-              item_id: item.producto.codigo,
-              item_name: item.producto.nombre,
-              price: item.producto.precio_venta,
-              quantity: item.cantidad,
-            })),
-          });
-        }
-
-        // Redirigir a página de confirmación con parámetros seguros
-        router.push(`/orden-confirmada?id=${response.data.numero_orden}&transaction=${referenciaWompi}`);
-      }
-    } catch (error) {
-      alert('Error al crear la orden. Por favor intenta nuevamente.');
-    } finally {
-      setLoading(false);
+      });
     }
   };
 
