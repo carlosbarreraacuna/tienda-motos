@@ -5,8 +5,13 @@ import { notFound } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 export const revalidate = 60; // 1 minuto
 
+function extractCodigo(slug: string): string {
+  const idx = slug.indexOf('--');
+  return idx >= 0 ? slug.slice(idx + 2) : slug;
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const codigo = params.slug.split('-').pop() || '';
+  const codigo = extractCodigo(params.slug);
   const response = await api.getProducto(codigo).catch(() => null);
 
   if (!response || !response.success) {
@@ -29,7 +34,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ProductoPage({ params }: { params: { slug: string } }) {
-  const codigo = params.slug.split('-').pop() || '';
+  const codigo = extractCodigo(params.slug);
   const response = await api.getProducto(codigo).catch(() => null);
 
   if (!response || !response.success) {

@@ -2,6 +2,7 @@ import { HeroSection } from "@/components/HeroSection";
 import { BrandsCarousel } from "@/components/BrandsCarousel";
 import { CategoriesSection } from "@/components/CategoriesSection";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
+import MotoFinderSection from "@/components/MotoFinderSection";
 import { api } from "@/lib/api";
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +39,7 @@ export default async function HomePage() {
       <HeroSection />
       <BrandsCarousel />
       <CategoriesSection categorias={categorias} />
+      <MotoFinderSection />
       <FeaturedProducts productos={productos} />
     </>
   );

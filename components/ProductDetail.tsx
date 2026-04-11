@@ -6,14 +6,15 @@ import { Producto, formatCOP, generateWhatsAppLink, api, getImageUrl, PLACEHOLDE
 import { useCart } from '@/lib/cart';
 import {
   ShoppingCart,
-  Heart,
-  Share2,
   Truck,
   Shield,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   MessageCircle,
+  Tag,
+  Wrench,
+  Building2,
 } from 'lucide-react';
 
 interface ProductDetailProps {
@@ -163,12 +164,45 @@ export function ProductDetail({ producto }: ProductDetailProps) {
                 </p>
               )}
               <h1 className="text-3xl font-bold text-dark mb-4">{producto.nombre}</h1>
-              
-              <div className="flex items-baseline gap-4 mb-6">
-                <p className="text-4xl font-bold text-primary">
-                  {formatCOP(producto.precio_venta)}
-                </p>
-                <p className="text-sm text-gray-500">Código: {producto.codigo}</p>
+
+              {/* Brand & Code row */}
+              <div className="flex items-center gap-4 mb-4 flex-wrap">
+                {producto.proveedor_marca && (
+                  <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <span className="font-medium">{producto.proveedor_marca}</span>
+                  </div>
+                )}
+                <span className="text-sm text-gray-400">Cód: {producto.codigo}</span>
+              </div>
+
+              {/* Pricing */}
+              <div className="mb-6">
+                {producto.en_oferta && producto.precio_oferta != null ? (
+                  <div className="flex items-start gap-3 flex-wrap">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-gray-400 line-through text-lg">
+                          {formatCOP(producto.precio_venta)}
+                        </span>
+                        <span className="bg-red-100 text-red-600 text-sm font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Tag className="w-3 h-3" />
+                          -{producto.descuento_porcentaje}%
+                        </span>
+                      </div>
+                      <p className="text-4xl font-bold text-red-500">
+                        {formatCOP(producto.precio_oferta)}
+                      </p>
+                      <p className="text-sm text-green-600 mt-1">
+                        Ahorro: {formatCOP(producto.precio_venta - producto.precio_oferta)}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-4xl font-bold text-primary">
+                    {formatCOP(producto.precio_venta)}
+                  </p>
+                )}
               </div>
 
               {/* Stock */}
@@ -269,6 +303,26 @@ export function ProductDetail({ producto }: ProductDetailProps) {
               <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
                 <h2 className="text-xl font-bold mb-4">Descripción</h2>
                 <p className="text-gray-700 whitespace-pre-line">{producto.descripcion}</p>
+              </div>
+            )}
+
+            {/* Modelos Compatibles */}
+            {producto.modelos_compatibles && (
+              <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Wrench className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-bold">Modelos Compatibles</h2>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {producto.modelos_compatibles.split(',').map((modelo, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-100 text-gray-700 text-sm px-3 py-1.5 rounded-full border border-gray-200"
+                    >
+                      {modelo.trim()}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -23,12 +23,16 @@ export interface Producto {
   nombre: string;
   slug: string;
   precio_venta: number;
+  descuento_porcentaje: number;   // 0-100
+  precio_oferta: number | null;   // precio con descuento aplicado (null si no hay descuento)
+  en_oferta: boolean;
   stock: number;
   disponible: boolean;
   categoria: string | null;
   categoria_slug: string | null;
   proveedor_marca: string | null;
   descripcion: string;
+  modelos_compatibles: string | null;
   imagenes: string[];
   especificaciones?: {
     unidad_medida: string;
@@ -149,6 +153,10 @@ class ApiClient {
     disponible?: boolean;
     precio_min?: number;
     precio_max?: number;
+    en_oferta?: boolean;
+    modelo?: string;
+    ordenar?: 'recientes' | 'precio_asc' | 'precio_desc' | 'descuento_desc' | 'mas_vendidos';
+    por_pagina?: number;
     pagina?: number;
   }): Promise<ProductosResponse> {
     const searchParams = new URLSearchParams();

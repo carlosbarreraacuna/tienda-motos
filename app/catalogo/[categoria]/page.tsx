@@ -13,12 +13,16 @@ export default async function CategoriaPage({
   params: { categoria: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const marca = typeof searchParams.marca === 'string' ? searchParams.marca : undefined;
-  const busqueda = typeof searchParams.busqueda === 'string' ? searchParams.busqueda : undefined;
-  const pagina = typeof searchParams.pagina === 'string' ? parseInt(searchParams.pagina) : 1;
+  const marca      = typeof searchParams.marca      === 'string' ? searchParams.marca      : undefined;
+  const busqueda   = typeof searchParams.busqueda   === 'string' ? searchParams.busqueda   : undefined;
+  const pagina     = typeof searchParams.pagina     === 'string' ? parseInt(searchParams.pagina) : 1;
+  const ordenar    = typeof searchParams.ordenar    === 'string' ? searchParams.ordenar as 'recientes' | 'precio_asc' | 'precio_desc' | 'descuento_desc' | 'mas_vendidos' : 'recientes';
+  const precio_min = typeof searchParams.precio_min === 'string' ? parseFloat(searchParams.precio_min) : undefined;
+  const precio_max = typeof searchParams.precio_max === 'string' ? parseFloat(searchParams.precio_max) : undefined;
+  const disponible = searchParams.disponible === 'true' ? true : undefined;
 
   const [productosResponse, categoriasResponse] = await Promise.all([
-    api.getProductos({ categoria: params.categoria, marca, busqueda, pagina }).catch(() => ({
+    api.getProductos({ categoria: params.categoria, marca, busqueda, pagina, ordenar, precio_min, precio_max, disponible }).catch(() => ({
       success: false,
       data: [],
       pagination: { total: 0, per_page: 20, current_page: 1, last_page: 1, from: 0, to: 0 }

@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { CartSidebar } from "@/components/CartSidebar";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import NewUserPopup from "@/components/NewUserPopup";
 import Script from "next/script";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
@@ -56,6 +57,7 @@ export default function RootLayout({
         <Footer />
         <CartSidebar />
         <WhatsAppButton />
+        <NewUserPopup />
       </body>
     </html>
   );
