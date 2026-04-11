@@ -22,6 +22,11 @@ const nextConfig = {
         port: '8000',
         pathname: '/storage/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.motospa.com.co',
+        pathname: '/storage/**',
+      },
     ],
   },
 };
