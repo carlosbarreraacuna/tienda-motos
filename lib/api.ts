@@ -1,5 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const BACKEND_URL = API_URL.replace('/api', '');
+const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
 
 /**
  * Convierte cualquier imagen del backend en URL absoluta.
