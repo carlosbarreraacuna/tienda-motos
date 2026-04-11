@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Producto, formatCOP, generateWhatsAppLink, api } from '@/lib/api';
+import { Producto, formatCOP, generateWhatsAppLink, api, getImageUrl, PLACEHOLDER_IMG } from '@/lib/api';
 import { useCart } from '@/lib/cart';
 import {
   ShoppingCart,
@@ -29,7 +28,9 @@ export function ProductDetail({ producto }: ProductDetailProps) {
   const [generandoImagen, setGenerandoImagen] = useState(false);
   const { addItem, openCart } = useCart();
 
-  const imagenes = producto.imagenes.length > 0 ? producto.imagenes : ['/placeholder-product.png'];
+  const imagenesRaw = producto.imagenes.length > 0 ? producto.imagenes : [];
+  const imagenes = imagenesRaw.map((img) => getImageUrl(img) ?? PLACEHOLDER_IMG);
+  const imagenesDisplay = imagenes.length > 0 ? imagenes : [PLACEHOLDER_IMG];
 
   // Polling de stock cada 30 segundos
   useEffect(() => {
@@ -95,15 +96,12 @@ export function ProductDetail({ producto }: ProductDetailProps) {
           <div>
             <div className="bg-white rounded-lg overflow-hidden shadow-lg mb-4">
               <div className="relative aspect-square">
-                <Image
-                  src={imagenes[imagenActual]}
+                <img
+                  src={imagenesDisplay[imagenActual]}
                   alt={producto.nombre}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="w-full h-full object-cover"
                 />
-                {imagenes.length > 1 && (
+                {imagenesDisplay.length > 1 && (
                   <>
                     <button
                       onClick={anteriorImagen}
@@ -123,9 +121,9 @@ export function ProductDetail({ producto }: ProductDetailProps) {
             </div>
 
             {/* Miniaturas */}
-            {imagenes.length > 1 && (
+            {imagenesDisplay.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {imagenes.map((imagen, index) => (
+                {imagenesDisplay.map((imagen, index) => (
                   <button
                     key={index}
                     onClick={() => setImagenActual(index)}
@@ -133,12 +131,10 @@ export function ProductDetail({ producto }: ProductDetailProps) {
                       imagenActual === index ? 'ring-2 ring-primary' : 'opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <Image
+                    <img
                       src={imagen}
                       alt={`${producto.nombre} - ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="100px"
+                      className="w-full h-full object-cover"
                     />
                   </button>
                 ))}
@@ -287,12 +283,10 @@ export function ProductDetail({ producto }: ProductDetailProps) {
                 <Link key={relacionado.id} href={`/producto/${relacionado.slug}`} className="group">
                   <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all">
                     <div className="relative aspect-square bg-gray-100">
-                      <Image
-                        src={relacionado.imagenes[0] || '/placeholder-product.png'}
+                      <img
+                        src={getImageUrl(relacionado.imagenes[0]) ?? PLACEHOLDER_IMG}
                         alt={relacionado.nombre}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
                     </div>
                     <div className="p-4">

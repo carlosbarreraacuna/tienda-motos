@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart';
-import { api, formatCOP } from '@/lib/api';
-import Image from 'next/image';
+import { api, formatCOP, getImageUrl, PLACEHOLDER_IMG } from '@/lib/api';
 import { ShoppingBag, CreditCard, Truck, CheckCircle } from 'lucide-react';
 
 export function CheckoutContent() {
@@ -525,13 +524,11 @@ export function CheckoutContent() {
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
                   <div key={item.producto.id} className="flex gap-3">
-                    <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0">
-                      <Image
-                        src={item.producto.imagenes[0] || '/placeholder-product.png'}
+                    <div className="relative w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
+                      <img
+                        src={getImageUrl(item.producto.imagenes[0]) ?? PLACEHOLDER_IMG}
                         alt={item.producto.nombre}
-                        fill
-                        className="object-cover rounded"
-                        sizes="64px"
+                        className="w-full h-full object-cover rounded"
                       />
                     </div>
                     <div className="flex-1 min-w-0">

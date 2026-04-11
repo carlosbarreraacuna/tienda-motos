@@ -1,4 +1,21 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const BACKEND_URL = API_URL.replace('/api', '');
+
+/**
+ * Convierte cualquier imagen del backend en URL absoluta.
+ * - Si ya es http/https → la devuelve tal cual
+ * - Si empieza con /storage → le agrega el host del backend
+ * - Si está vacía → devuelve null (para mostrar placeholder)
+ */
+export function getImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BACKEND_URL}${url}`;
+  return `${BACKEND_URL}/${url}`;
+}
+
+/** Placeholder SVG inline — sin petición de red, sin 400 */
+export const PLACEHOLDER_IMG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='18' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ESin imagen%3C/text%3E%3C/svg%3E`;
 
 export interface Producto {
   id: number;

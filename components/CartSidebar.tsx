@@ -1,9 +1,8 @@
 'use client';
 
 import { useCart } from '@/lib/cart';
-import { formatCOP } from '@/lib/api';
+import { formatCOP, getImageUrl, PLACEHOLDER_IMG } from '@/lib/api';
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export function CartSidebar() {
@@ -54,12 +53,10 @@ export function CartSidebar() {
                 <div key={item.producto.id} className="flex gap-4 border-b pb-4">
                   {/* Image */}
                   <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image
-                      src={item.producto.imagenes[0] || '/placeholder-product.png'}
+                    <img
+                      src={getImageUrl(item.producto.imagenes[0]) ?? PLACEHOLDER_IMG}
                       alt={item.producto.nombre}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
+                      className="w-full h-full object-cover"
                     />
                   </div>
 

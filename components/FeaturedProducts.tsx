@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { Producto, formatCOP } from '@/lib/api';
+import { Producto, formatCOP, getImageUrl, PLACEHOLDER_IMG } from '@/lib/api';
 import { ShoppingCart } from 'lucide-react';
 
 interface FeaturedProductsProps {
@@ -40,19 +39,17 @@ export function FeaturedProducts({ productos }: FeaturedProductsProps) {
 }
 
 function ProductCard({ producto }: { producto: Producto }) {
-  const imagenUrl = producto.imagenes[0] || '/placeholder-product.png';
+  const imagenUrl = getImageUrl(producto.imagenes[0]) ?? PLACEHOLDER_IMG;
 
   return (
     <Link href={`/producto/${producto.slug}`} className="group">
       <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         {/* Image */}
         <div className="relative aspect-square bg-gray-100">
-          <Image
+          <img
             src={imagenUrl}
             alt={producto.nombre}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           {!producto.disponible && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

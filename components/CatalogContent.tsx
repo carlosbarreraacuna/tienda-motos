@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Producto, Categoria, PaginationMeta, formatCOP } from '@/lib/api';
+import { Producto, Categoria, PaginationMeta, formatCOP, getImageUrl, PLACEHOLDER_IMG } from '@/lib/api';
 import { Filter, X, ChevronDown, ChevronRight } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 
@@ -245,18 +244,16 @@ function ProductCard({
   producto: Producto;
   onAddToCart: (producto: Producto) => void;
 }) {
-  const imagenUrl = producto.imagenes[0] || '/placeholder-product.png';
+  const imagenUrl = getImageUrl(producto.imagenes[0]) ?? PLACEHOLDER_IMG;
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
       <Link href={`/producto/${producto.slug}`}>
         <div className="relative aspect-square bg-gray-100">
-          <Image
+          <img
             src={imagenUrl}
             alt={producto.nombre}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           {!producto.disponible && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
