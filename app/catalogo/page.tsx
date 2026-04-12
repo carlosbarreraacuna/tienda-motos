@@ -25,9 +25,10 @@ export default async function CatalogoPage({
   const precio_max  = typeof searchParams.precio_max === 'string' ? parseFloat(searchParams.precio_max) : undefined;
   const disponible  = searchParams.disponible === 'true' ? true : undefined;
   const modelo      = typeof searchParams.modelo === 'string' ? searchParams.modelo : undefined;
+  const en_oferta   = searchParams.en_oferta === 'true' ? true : undefined;
 
   const [productosResponse, categoriasResponse] = await Promise.all([
-    api.getProductos({ categoria, marca, busqueda, pagina, ordenar, precio_min, precio_max, disponible, modelo }).catch(() => ({
+    api.getProductos({ categoria, marca, busqueda, pagina, ordenar, precio_min, precio_max, disponible, modelo, en_oferta }).catch(() => ({
       success: false,
       data: [],
       pagination: { total: 0, per_page: 20, current_page: 1, last_page: 1, from: 0, to: 0 }

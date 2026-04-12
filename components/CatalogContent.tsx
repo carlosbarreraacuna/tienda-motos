@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Producto, Categoria, PaginationMeta, formatCOP, getImageUrl, PLACEHOLDER_IMG } from '@/lib/api';
-import { Filter, X, SortAsc } from 'lucide-react';
+import { Filter, X, SortAsc, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart';
 
@@ -28,6 +28,7 @@ export function CatalogContent({
   const [precioMin, setPrecioMin] = useState(searchParams.get('precio_min') || '');
   const [precioMax, setPrecioMax] = useState(searchParams.get('precio_max') || '');
   const [soloDisponible, setSoloDisponible] = useState(searchParams.get('disponible') === 'true');
+  const [soloEnOferta, setSoloEnOferta] = useState(searchParams.get('en_oferta') === 'true');
   const [ordenar, setOrdenar] = useState(searchParams.get('ordenar') || 'recientes');
 
   const categoriaSeleccionada = searchParams.get('categoria') || categoriaActual?.slug || '';
@@ -43,29 +44,41 @@ export function CatalogContent({
     setPrecioMin(searchParams.get('precio_min') || '');
     setPrecioMax(searchParams.get('precio_max') || '');
     setSoloDisponible(searchParams.get('disponible') === 'true');
+    setSoloEnOferta(searchParams.get('en_oferta') === 'true');
     setOrdenar(searchParams.get('ordenar') || 'recientes');
   }, [searchParams]);
 
-  const seleccionarCategoria = (slug: string) => {
+  const buildParams = (overrides: Record<string, string | boolean | null> = {}) => {
     const params = new URLSearchParams();
-    if (slug)                        params.set('categoria',  slug);
-    if (busquedaActual)              params.set('busqueda',   busquedaActual);
-    if (precioMin)                   params.set('precio_min', precioMin);
-    if (precioMax)                   params.set('precio_max', precioMax);
-    if (soloDisponible)              params.set('disponible', 'true');
-    if (ordenar !== 'recientes')     params.set('ordenar',    ordenar);
+    const get = (key: string, fallback: string | boolean | null) =>
+      key in overrides ? overrides[key] : fallback;
+
+    const cat  = get('categoria',  categoriaSeleccionada);
+    const bus  = get('busqueda',   busquedaActual);
+    const pmin = get('precio_min', precioMin);
+    const pmax = get('precio_max', precioMax);
+    const disp = get('disponible', soloDisponible);
+    const ofer = get('en_oferta',  soloEnOferta);
+    const ord  = get('ordenar',    ordenar);
+
+    if (cat)                      params.set('categoria',  String(cat));
+    if (bus)                      params.set('busqueda',   String(bus));
+    if (pmin)                     params.set('precio_min', String(pmin));
+    if (pmax)                     params.set('precio_max', String(pmax));
+    if (disp)                     params.set('disponible', 'true');
+    if (ofer)                     params.set('en_oferta',  'true');
+    if (ord && ord !== 'recientes') params.set('ordenar',  String(ord));
+    return params;
+  };
+
+  const seleccionarCategoria = (slug: string) => {
+    const params = buildParams({ categoria: slug });
     params.delete('pagina');
     router.push(`/catalogo?${params.toString()}`);
   };
 
   const aplicarFiltros = () => {
-    const params = new URLSearchParams();
-    if (categoriaSeleccionada)   params.set('categoria',  categoriaSeleccionada);
-    if (busquedaActual)          params.set('busqueda',   busquedaActual);
-    if (precioMin)               params.set('precio_min', precioMin);
-    if (precioMax)               params.set('precio_max', precioMax);
-    if (soloDisponible)          params.set('disponible', 'true');
-    if (ordenar !== 'recientes') params.set('ordenar',    ordenar);
+    const params = buildParams();
     params.delete('pagina');
     router.push(`/catalogo?${params.toString()}`);
   };
@@ -73,16 +86,22 @@ export function CatalogContent({
   const toggleDisponible = () => {
     const next = !soloDisponible;
     setSoloDisponible(next);
-    const params = new URLSearchParams(searchParams.toString());
-    if (next) params.set('disponible', 'true'); else params.delete('disponible');
+    const params = buildParams({ disponible: next });
+    params.delete('pagina');
+    router.push(`/catalogo?${params.toString()}`);
+  };
+
+  const toggleEnOferta = () => {
+    const next = !soloEnOferta;
+    setSoloEnOferta(next);
+    const params = buildParams({ en_oferta: next });
     params.delete('pagina');
     router.push(`/catalogo?${params.toString()}`);
   };
 
   const cambiarOrden = (nuevoOrden: string) => {
     setOrdenar(nuevoOrden);
-    const params = new URLSearchParams(searchParams.toString());
-    if (nuevoOrden === 'recientes') params.delete('ordenar'); else params.set('ordenar', nuevoOrden);
+    const params = buildParams({ ordenar: nuevoOrden });
     params.delete('pagina');
     router.push(`/catalogo?${params.toString()}`);
   };
@@ -91,6 +110,7 @@ export function CatalogContent({
     setPrecioMin('');
     setPrecioMax('');
     setSoloDisponible(false);
+    setSoloEnOferta(false);
     setOrdenar('recientes');
     router.push('/catalogo');
   };
@@ -101,7 +121,7 @@ export function CatalogContent({
     router.push(`/catalogo?${params.toString()}`);
   };
 
-  const hayFiltrosActivos = !!(precioMin || precioMax || soloDisponible || categoriaSeleccionada || busquedaActual);
+  const hayFiltrosActivos = !!(precioMin || precioMax || soloDisponible || soloEnOferta || categoriaSeleccionada || busquedaActual);
 
   const handleAddToCart = (producto: Producto) => {
     addItem(producto, 1);
@@ -220,6 +240,29 @@ export function CatalogContent({
                 </div>
               </div>
 
+              {/* Ofertas */}
+              <div>
+                <h3 className="font-semibold text-sm text-gray-700 mb-3 uppercase tracking-wide flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-red-500" />
+                  Ofertas
+                </h3>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div
+                    onClick={toggleEnOferta}
+                    className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${
+                      soloEnOferta ? 'bg-red-500' : 'bg-gray-200'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                      soloEnOferta ? 'translate-x-4' : 'translate-x-0'
+                    }`} />
+                  </div>
+                  <span className="text-sm text-gray-700 group-hover:text-dark transition-colors">
+                    Solo en oferta
+                  </span>
+                </label>
+              </div>
+
               {/* Disponibilidad */}
               <div>
                 <h3 className="font-semibold text-sm text-gray-700 mb-3 uppercase tracking-wide">Disponibilidad</h3>
@@ -283,7 +326,7 @@ export function CatalogContent({
             </div>
 
             {/* Chips de filtros activos */}
-            {(precioMin || precioMax || soloDisponible) && (
+            {(precioMin || precioMax || soloDisponible || soloEnOferta) && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {(precioMin || precioMax) && (
                   <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">
@@ -293,6 +336,13 @@ export function CatalogContent({
                     <button onClick={() => { setPrecioMin(''); setPrecioMax(''); aplicarFiltros(); }}>
                       <X className="w-3 h-3" />
                     </button>
+                  </span>
+                )}
+                {soloEnOferta && (
+                  <span className="inline-flex items-center gap-1 bg-red-100 text-red-600 text-xs font-medium px-3 py-1 rounded-full">
+                    <Tag className="w-3 h-3" />
+                    Solo en oferta
+                    <button onClick={toggleEnOferta}><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {soloDisponible && (
