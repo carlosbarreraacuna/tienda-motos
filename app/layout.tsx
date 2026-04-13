@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CartSidebar } from "@/components/CartSidebar";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import NewUserPopup from "@/components/NewUserPopup";
+import { Providers } from "./Providers";
 import Script from "next/script";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
@@ -50,14 +51,16 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased bg-gray-50">
-        <Navbar />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
-        <CartSidebar />
-        <WhatsAppButton />
-        <NewUserPopup />
+        <Providers>
+          <Navbar />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <CartSidebar />
+          <WhatsAppButton />
+          <NewUserPopup />
+        </Providers>
       </body>
     </html>
   );
