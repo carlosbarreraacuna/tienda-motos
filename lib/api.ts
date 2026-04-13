@@ -207,7 +207,7 @@ class ApiClient {
   }
 
   // Crear orden
-  async crearOrden(data: CrearOrdenData): Promise<{
+  async crearOrden(data: CrearOrdenData, token?: string): Promise<{
     success: boolean;
     message: string;
     data: { orden_id: number; numero_orden: string };
@@ -215,6 +215,7 @@ class ApiClient {
     return this.request('/tienda/ordenes', {
       method: 'POST',
       body: JSON.stringify(data),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   }
 

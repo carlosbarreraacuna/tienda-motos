@@ -124,7 +124,8 @@ export function CheckoutContent() {
           cupon_descuento: couponDiscount,
         };
 
-        const response = await api.crearOrden(ordenData);
+        const customerToken = typeof window !== 'undefined' ? localStorage.getItem('customer_token') : null;
+        const response = await api.crearOrden(ordenData, customerToken || undefined);
         
         if (response.success) {
           setOrdenId(response.data.numero_orden);
@@ -283,7 +284,11 @@ export function CheckoutContent() {
 
   const actualizarOrdenConPago = async (referenciaWompi: string) => {
     console.log('💳 Pago exitoso, referencia:', referenciaWompi);
-    
+
+    // Snapshot antes de limpiar el carrito
+    const totalSnapshot = total;
+    const itemsSnapshot = [...items];
+
     try {
       // Actualizar la orden con la referencia de pago
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/tienda/ordenes/${ordenId}/payment`, {
@@ -299,17 +304,14 @@ export function CheckoutContent() {
     } catch (error) {
       console.error('Error actualizando orden:', error);
     }
-    
-    // Limpiar carrito
-    clearCart();
-    
-    // Google Analytics event
+
+    // Google Analytics event (antes de limpiar carrito)
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'purchase', {
         transaction_id: ordenId,
-        value: total,
+        value: totalSnapshot,
         currency: 'COP',
-        items: items.map(item => ({
+        items: itemsSnapshot.map(item => ({
           item_id: item.producto.codigo,
           item_name: item.producto.nombre,
           price: item.producto.precio_venta,
@@ -317,6 +319,10 @@ export function CheckoutContent() {
         })),
       });
     }
+
+    // Limpiar carrito y mostrar pantalla de éxito
+    clearCart();
+    setStep('success');
   };
 
   if (step === 'success') {
