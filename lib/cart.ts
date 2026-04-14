@@ -9,12 +9,20 @@ export interface CartItem {
   cantidad: number;
 }
 
+export interface CartIssue {
+  productoId: number;
+  type: 'price_changed' | 'stock_reduced' | 'out_of_stock';
+  oldValue?: number;
+  newValue?: number;
+}
+
 interface CartStore {
   items: CartItem[];
   isOpen: boolean;
   addItem: (producto: Producto, cantidad?: number) => void;
   removeItem: (productoId: number) => void;
   updateQuantity: (productoId: number, cantidad: number) => void;
+  updateProductData: (productoId: number, updates: Partial<Producto>) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -36,17 +44,19 @@ export const useCart = create<CartStore>()(
           );
 
           if (existingItem) {
+            const newCantidad = existingItem.cantidad + cantidad;
+            const capped = Math.min(newCantidad, producto.stock);
             return {
               items: state.items.map((item) =>
                 item.producto.id === producto.id
-                  ? { ...item, cantidad: item.cantidad + cantidad }
+                  ? { ...item, cantidad: capped }
                   : item
               ),
             };
           }
 
           return {
-            items: [...state.items, { producto, cantidad }],
+            items: [...state.items, { producto, cantidad: Math.min(cantidad, producto.stock) }],
           };
         });
       },
@@ -66,6 +76,17 @@ export const useCart = create<CartStore>()(
         set((state) => ({
           items: state.items.map((item) =>
             item.producto.id === productoId ? { ...item, cantidad } : item
+          ),
+        }));
+      },
+
+      /** Actualiza precio, stock y disponibilidad de un ítem ya en el carrito */
+      updateProductData: (productoId, updates) => {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.producto.id === productoId
+              ? { ...item, producto: { ...item.producto, ...updates } }
+              : item
           ),
         }));
       },

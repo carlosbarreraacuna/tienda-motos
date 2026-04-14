@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { orderApi, CustomerOrder } from '@/lib/customerApi';
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, CheckCircle2, Clock, Circle, Store, Globe } from 'lucide-react';
@@ -32,12 +32,24 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchOrder = (showLoader = false) => {
+    if (showLoader) setLoading(true);
+    return orderApi.detail(Number(id), type)
+      .then(r => setOrder(r.data))
+      .catch(() => { if (showLoader) setError('No se pudo cargar el pedido.'); })
+      .finally(() => { if (showLoader) setLoading(false); });
+  };
 
   useEffect(() => {
-    orderApi.detail(Number(id), type)
-      .then(r => setOrder(r.data))
-      .catch(() => setError('No se pudo cargar el pedido.'))
-      .finally(() => setLoading(false));
+    fetchOrder(true);
+
+    // Poll every 30 s to reflect admin status changes (shipped, delivered, etc.)
+    intervalRef.current = setInterval(() => fetchOrder(false), 30_000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [id]);
 
   if (loading) return (

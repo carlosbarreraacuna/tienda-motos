@@ -127,8 +127,9 @@ class ApiClient {
 
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
+      cache: 'no-store', // Always fetch fresh data — stock changes in real time
       ...options,
       headers: {
         'Content-Type': 'application/json',

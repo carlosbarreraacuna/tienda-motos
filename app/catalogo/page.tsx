@@ -9,8 +9,6 @@ export const metadata = {
   description: 'Encuentra todos los repuestos para tu moto. Filtros por categoría, marca y precio.',
 };
 
-export const revalidate = 300; // 5 minutos
-
 export default async function CatalogoPage({
   searchParams,
 }: {

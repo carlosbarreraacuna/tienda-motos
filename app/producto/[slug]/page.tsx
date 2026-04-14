@@ -3,7 +3,6 @@ import { ProductDetail } from '@/components/ProductDetail';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 60; // 1 minuto
 
 function extractCodigo(slug: string): string {
   const idx = slug.indexOf('--');
